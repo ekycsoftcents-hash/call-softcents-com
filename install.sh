@@ -25,7 +25,11 @@ fi
 
 # Build the application image and install PHP/Node dependencies into the mounted project.
 docker compose -f "$COMPOSE_FILE" build --pull
-docker compose -f "$COMPOSE_FILE" run --rm app composer install --no-interaction --prefer-dist --optimize-autoloader
+# GitHub may temporarily rate-limit dist ZIP downloads. Retry from source with
+# one HTTP worker so the install can continue without changing dependencies.
+if ! COMPOSER_MAX_PARALLEL_HTTP=1 docker compose -f "$COMPOSE_FILE" run --rm app composer install --no-interaction --prefer-dist --optimize-autoloader; then
+  COMPOSER_MAX_PARALLEL_HTTP=1 docker compose -f "$COMPOSE_FILE" run --rm app composer install --no-interaction --prefer-source --optimize-autoloader
+fi
 docker compose -f "$COMPOSE_FILE" run --rm app npm install
 
 docker compose -f "$COMPOSE_FILE" up -d db redis rabbitmq minio
