@@ -38,6 +38,20 @@ fi
 docker compose -f "$COMPOSE_FILE" run --rm app npm install
 
 docker compose -f "$COMPOSE_FILE" up -d db redis rabbitmq minio
+
+# Wait for MySQL to accept authenticated connections before running migrations.
+for attempt in {1..30}; do
+  if docker compose -f "$COMPOSE_FILE" exec -T db sh -c 'mysqladmin ping -h 127.0.0.1 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent' >/dev/null 2>&1; then
+    break
+  fi
+  if [[ "$attempt" == 30 ]]; then
+    echo "MySQL did not become ready after 60 seconds." >&2
+    docker compose -f "$COMPOSE_FILE" logs --tail=100 db >&2
+    exit 1
+  fi
+  sleep 2
+done
+
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan key:generate --force
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan optimize:clear
