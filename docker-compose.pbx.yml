@@ -1,0 +1,84 @@
+# FusionPBX/FreeSWITCH PBX stack
+#
+# This file intentionally expects a locally audited, version-pinned custom
+# FusionPBX image. There is no first-party production image assumed here.
+# Build the image under docker/pbx after auditing the selected FusionPBX build.
+services:
+  pbx-db:
+    image: postgres:16-alpine
+    container_name: voice-pbx-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PBX_DB_DATABASE:-fusionpbx}
+      POSTGRES_USER: ${PBX_DB_USERNAME:-fusionpbx}
+      POSTGRES_PASSWORD: ${PBX_DB_PASSWORD:?PBX_DB_PASSWORD must be set}
+    volumes:
+      - pbxdbdata:/var/lib/postgresql/data
+    networks:
+      - pbx-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  fusionpbx:
+    build:
+      context: ./docker/pbx
+      dockerfile: Dockerfile
+      args:
+        FUSIONPBX_VERSION: ${FUSIONPBX_VERSION:-pinned-version-required}
+        FREESWITCH_VERSION: ${FREESWITCH_VERSION:-pinned-version-required}
+    image: ${FUSIONPBX_IMAGE:-voice-fusionpbx:debian12-pinned}
+    container_name: voice-fusionpbx
+    hostname: ${FUSIONPBX_HOSTNAME:-pbx.internal.example}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PBX_DB_HOST: pbx-db
+      PBX_DB_DATABASE: ${PBX_DB_DATABASE:-fusionpbx}
+      PBX_DB_USERNAME: ${PBX_DB_USERNAME:-fusionpbx}
+      PBX_DB_PASSWORD: ${PBX_DB_PASSWORD:?PBX_DB_PASSWORD must be set}
+      FREESWITCH_EVENT_SOCKET_PASSWORD: ${FREESWITCH_EVENT_SOCKET_PASSWORD:?FREESWITCH_EVENT_SOCKET_PASSWORD must be set}
+      FUSIONPBX_DOMAIN: ${FUSIONPBX_DOMAIN:?FUSIONPBX_DOMAIN must be set}
+    ports:
+      - "${PBX_HTTP_PORT:-8080}:80"
+      - "${PBX_HTTPS_PORT:-8443}:443"
+      - "${FREESWITCH_EVENT_SOCKET_PORT:-8021}:8021/tcp"
+      # SIP/RTP ports must match the audited FreeSWITCH configuration.
+      - "${SIP_PORT:-5060}:5060/udp"
+      - "${SIP_TLS_PORT:-5061}:5061/tcp"
+      - "${RTP_PORT_START:-16384}-${RTP_PORT_END:-32768}:${RTP_PORT_START:-16384}-${RTP_PORT_END:-32768}/udp"
+    volumes:
+      - pbxconfig:/etc/freeswitch
+      - pbxsounds:/usr/share/freeswitch/sounds
+      - pbxrecordings:/var/lib/freeswitch/recordings
+      - pbxweb:/var/www/fusionpbx
+      - pbxlogs:/var/log/freeswitch
+    networks:
+      - pbx-network
+      - app-network
+    depends_on:
+      pbx-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "fs_cli -x 'status' >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+
+networks:
+  app-network:
+    external: true
+    name: ${APP_DOCKER_NETWORK:-call_softcents_app-network}
+  pbx-network:
+    driver: bridge
+
+volumes:
+  pbxdbdata:
+  pbxconfig:
+  pbxsounds:
+  pbxrecordings:
+  pbxweb:
+  pbxlogs:

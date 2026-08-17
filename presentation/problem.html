@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="bn"><head><meta charset="UTF-8"><title>Business Problem</title><style>
+*{box-sizing:border-box}body{margin:0}
+.slide-container{width:1280px;min-height:720px;background:#fff;color:#1E1B4B;font-family:Arial,sans-serif;padding:50px 64px 0}
+.head{border-bottom:1px solid #E5E7EB;padding-bottom:12px;display:flex;justify-content:space-between;align-items:end}
+.eyebrow{font:700 16px monospace;color:#F97316;letter-spacing:.1em}
+.h1{font:700 42px/1.05 monospace;margin-top:12px;letter-spacing:-.04em}
+.index{font:700 50px monospace;color:#E5E5EB}
+.body{display:grid;grid-template-columns:5fr 7fr;gap:28px;padding-top:28px}
+.lead{font:700 30px/1.2 monospace;max-width:450px}
+.lead span{color:#F97316}
+.sub{font-size:18px;line-height:1.5;color:#475569;margin-top:18px;max-width:430px}
+.matrix{border-top:1px solid #1E1B4B}
+.row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #E5E7EB;min-height:100px}
+.cell{padding:14px 12px 12px 0;font-size:17px;line-height:1.35}
+.cell+ .cell{border-left:1px solid #E5E7EB;padding-left:14px}
+.label{font:700 13px monospace;color:#F97316;margin-bottom:10px}
+.footer{position:absolute;left:64px;right:64px;bottom:26px;border-top:1px solid #E5E7EB;padding-top:8px;font:400 12px monospace;color:#64748B}
+</style></head><body><div class="slide-container"><div class="head"><div><div class="eyebrow">[02] WHY THIS SYSTEM</div><div class="h1">The calling problem is operational.</div></div><div class="index">02</div></div><div class="body"><div><div class="lead">Synchronous calling makes the web request carry the <span>telephony burden.</span></div><div class="sub">Campaigns need a reliable hand-off between the user interface, the call engine and the final call status — without exposing credentials or mixing tenants.</div></div><div class="matrix"><div class="row"><div class="cell"><div class="label">[01] BLOCKING REQUESTS</div>HTTP request waits while calls start, timeout or fail.</div><div class="cell"><div class="label">REQUIREMENT</div>Asynchronous queue with a persistent worker.</div></div><div class="row"><div class="cell"><div class="label">[02] DUPLICATE / LOST STATE</div>Retries can create duplicate calls or uncertain billing.</div><div class="cell"><div class="label">REQUIREMENT</div>Idempotency keys, bounded retry and event reconciliation.</div></div><div class="row"><div class="cell"><div class="label">[03] TENANT COLLISION</div>One client must never use another client’s identity.</div><div class="cell"><div class="label">REQUIREMENT</div>Per-client Caller ID, SIP profile and authorization boundary.</div></div></div></div><div class="footer">DESIGN PRINCIPLE / FAST REQUESTS · DURABLE JOBS · CORRELATED EVENTS</div></div></body></html>

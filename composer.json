@@ -1,0 +1,117 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "bishwajitcadhikary/voice",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "ext-bcmath": "*",
+        "ext-pcntl": "*",
+        "ext-pdo": "*",
+        "ext-posix": "*",
+        "filament/filament": "^5.0",
+        "filament/spatie-laravel-settings-plugin": "^5.0",
+        "flowframe/laravel-trend": "^0.5.0",
+        "hugomyb/filament-media-action": "^5.0",
+        "knuckleswtf/scribe": "^5.10",
+        "krowinski/php-mysql-replication": "dev-master",
+        "lara-zeus/tabler-icons-enum": "^2.0",
+        "laravel/framework": "^13.0",
+        "iamfarhad/laravel-rabbitmq": "^1.0",
+        "laravel/horizon": "^5.40",
+                "laravel/octane": "^2.13",
+        "laravel/sanctum": "^4.0",
+        "laravel/telescope": "^5.15",
+        "laravel/tinker": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "maatwebsite/excel": "^3.1",
+        "nunomaduro/essentials": "^1.0",
+        "opcodesio/log-viewer": "^3.24",
+        "pbmedia/laravel-ffmpeg": "^8.7",
+        "phiki/phiki": "^2.2",
+        "propaganistas/laravel-disposable-email": "^2.4",
+        "propaganistas/laravel-phone": "^6.0",
+        "spatie/laravel-ray": "^1.43",
+        "spatie/laravel-settings": "^3.6",
+        "stechstudio/filament-impersonate": "^4.0",
+        "webbingbrasil/filament-copyactions": "^4.0",
+        "ysfkaya/filament-phone-input": "^4.0"
+    },
+    "require-dev": {
+        "barryvdh/laravel-debugbar": "^4.2",
+        "fakerphp/faker": "^1.23",
+        "laravel/boost": "^2.4",
+        "laravel/pail": "^1.2.2",
+        "laravel/pint": "^1.24",
+        "laravel/sail": "^1.41",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "pestphp/pest": "^4.1",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-stressless": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        },
+        "files": [
+            "app/Support/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate",
+            "@php artisan migrate --force",
+            "npm install",
+            "npm run build"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan filament:upgrade"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

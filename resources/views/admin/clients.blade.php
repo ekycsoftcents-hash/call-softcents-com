@@ -1,0 +1,6 @@
+@extends('admin.layout')
+
+@section('admin-content')
+    <div><h1 class="text-2xl font-bold">Clients</h1><p class="mt-1 text-sm text-slate-600">All client accounts and their reseller ownership.</p></div>
+    <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="px-5 py-3">Name</th><th class="px-5 py-3">Company</th><th class="px-5 py-3">Email</th><th class="px-5 py-3">Reseller</th><th class="px-5 py-3">Status</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse ($clients as $client)<tr><td class="px-5 py-4 font-medium">{{ $client->name }}</td><td class="px-5 py-4">{{ $client->company_name }}</td><td class="px-5 py-4 text-slate-600">{{ $client->email }}</td><td class="px-5 py-4">{{ $client->reseller?->name ?? 'Direct' }}</td><td class="px-5 py-4">{{ $client->status?->getLabel() ?? $client->status }}</td></tr>@empty<tr><td colspan="5" class="px-5 py-10 text-center text-slate-500">No clients yet.</td></tr>@endforelse</tbody></table></div><div class="border-t border-slate-200 px-5 py-3">{{ $clients->links() }}</div></div>
+@endsection

@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+
+@source '../../resources/views/reseller/**/*.blade.php';
+@source '../../resources/views/layouts/**/*.blade.php';
+@source '../../app/Http/Controllers/ResellerPortalController.php';
+
+:root {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}

@@ -1,0 +1,122 @@
+{
+  "project_info": {
+    "title": "Project Overview",
+    "created": 1786949662.893,
+    "last_updated": 1786953152.655,
+    "total_slides": 10
+  },
+  "slides": [
+    {
+      "id": "overview",
+      "state": "edited",
+      "pageNum": 1
+    },
+    {
+      "id": "problem",
+      "state": "edited",
+      "pageNum": 2
+    },
+    {
+      "id": "architecture",
+      "state": "edited",
+      "pageNum": 3
+    },
+    {
+      "id": "portals",
+      "state": "edited",
+      "pageNum": 4
+    },
+    {
+      "id": "queue",
+      "state": "edited",
+      "pageNum": 5
+    },
+    {
+      "id": "connection",
+      "state": "edited",
+      "pageNum": 6
+    },
+    {
+      "id": "events",
+      "state": "edited",
+      "pageNum": 7
+    },
+    {
+      "id": "security",
+      "state": "edited",
+      "pageNum": 8
+    },
+    {
+      "id": "deployment",
+      "state": "edited",
+      "pageNum": 9
+    },
+    {
+      "id": "outcome",
+      "state": "edited",
+      "pageNum": 10
+    }
+  ],
+  "outline": [
+    {
+      "id": "overview",
+      "title": "Project Overview",
+      "summary": "White-label multi-tenant outbound calling platform built with Laravel 13, lightweight Blade portals, RabbitMQ and FusionPBX/FreeSWITCH.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "problem",
+      "title": "Business Problem",
+      "summary": "Why synchronous outbound calling fails at scale and why tenant isolation, per-client identity and reliable status are required.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "architecture",
+      "title": "Solution Architecture",
+      "summary": "End-to-end flow from Blade portals through Laravel and RabbitMQ to FusionPBX/FreeSWITCH and live call events.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "portals",
+      "title": "Three Portal Model",
+      "summary": "Admin, reseller and client responsibilities with tenant boundaries and white-label capabilities.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "queue",
+      "title": "RabbitMQ Call Lifecycle",
+      "summary": "Queued call request, persistent worker, retry, idempotency and FusionPBX originate flow.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "connection",
+      "title": "FusionPBX Live Connection",
+      "summary": "FreeSWITCH Event Socket authentication, originate/bgapi originate and safe caller identity routing.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "events",
+      "title": "Event Synchronization",
+      "summary": "Long-lived Event Socket listener, event correlation and real-time call status transitions.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "security",
+      "title": "Security and Tenant Isolation",
+      "summary": "Encrypted credentials, private Event Socket ACL, private broadcast channels and reseller/client data isolation.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "deployment",
+      "title": "Deployment and Operations",
+      "summary": "Docker Compose, RabbitMQ persistence, Supervisor workers, migrations, monitoring and operational checks.",
+      "image_plan": "Use a suitable image if needed"
+    },
+    {
+      "id": "outcome",
+      "title": "Outcome and Next Steps",
+      "summary": "Expected platform outcome and production actions: credentials, gateway, listener, broadcast, limits and load testing.",
+      "image_plan": "Use a suitable image if needed"
+    }
+  ]
+}

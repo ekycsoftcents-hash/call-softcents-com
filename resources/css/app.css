@@ -1,0 +1,17 @@
+@import '../../vendor/filament/filament/resources/css/theme.css';
+
+/*Filament */
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/*Laravel */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/*@layer components {*/
+/*    .fi-sidebar-nav-groups {*/
+/*        row-gap: calc(var(--spacing)*1);*/
+/*    }*/
+/*}*/
