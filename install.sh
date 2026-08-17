@@ -4,6 +4,7 @@ set -Eeuo pipefail
 APP_DIR="${APP_DIR:-$PWD}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 PBX_COMPOSE_FILE="${PBX_COMPOSE_FILE:-docker-compose.pbx.yml}"
+AUTO_RESET_DB_ON_AUTH_FAILURE="${AUTO_RESET_DB_ON_AUTH_FAILURE:-true}"
 
 cd "$APP_DIR"
 
@@ -14,6 +15,17 @@ chmod -R ug+rwX storage bootstrap/cache 2>/dev/null || true
 
 command -v docker >/dev/null 2>&1 || { echo "Docker is required. Install Docker Engine and Compose v2 first." >&2; exit 1; }
 docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required." >&2; exit 1; }
+
+wait_for_mysql() {
+  for attempt in {1..30}; do
+    if docker compose -f "$COMPOSE_FILE" exec -T db sh -c 'mysqladmin ping -h 127.0.0.1 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent' >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  docker compose -f "$COMPOSE_FILE" logs --tail=100 db >&2
+  return 1
+}
 
 if [[ ! -f .env ]]; then
   cp .env.example .env
@@ -53,24 +65,37 @@ docker compose -f "$COMPOSE_FILE" run --rm app npm install
 docker compose -f "$COMPOSE_FILE" up -d db redis rabbitmq minio
 
 # Wait for MySQL to accept authenticated connections before running migrations.
-for attempt in {1..30}; do
-  if docker compose -f "$COMPOSE_FILE" exec -T db sh -c 'mysqladmin ping -h 127.0.0.1 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent' >/dev/null 2>&1; then
-    break
-  fi
-  if [[ "$attempt" == 30 ]]; then
-    echo "MySQL did not become ready after 60 seconds." >&2
-    docker compose -f "$COMPOSE_FILE" logs --tail=100 db >&2
-    exit 1
-  fi
-  sleep 2
-done
+if ! wait_for_mysql; then
+  echo "MySQL did not become ready after 60 seconds." >&2
+  exit 1
+fi
 
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan key:generate --force
 if ! docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force; then
-  echo "Laravel could not authenticate to MySQL. Check DB_DATABASE, DB_USERNAME and DB_PASSWORD in .env." >&2
-  echo "If the database contains no required data, recovery is: docker compose down && docker volume ls | grep dbdata" >&2
-  echo "Remove only the matching old dbdata volume, then rerun this installer." >&2
-  exit 1
+  if [[ "$AUTO_RESET_DB_ON_AUTH_FAILURE" != "true" ]]; then
+    echo "Laravel could not authenticate to MySQL. Check DB_DATABASE, DB_USERNAME and DB_PASSWORD in .env." >&2
+    exit 1
+  fi
+
+  DB_VOLUME="$(docker inspect -f '{{range .Mounts}}{{if eq .Destination "/var/lib/mysql"}}{{.Name}}{{end}}{{end}}' voice-db 2>/dev/null || true)"
+  if [[ -z "$DB_VOLUME" ]]; then
+    echo "Unable to identify the MySQL volume; refusing an automatic reset." >&2
+    exit 1
+  fi
+
+  BACKUP_VOLUME="${DB_VOLUME}_backup_$(date +%Y%m%d%H%M%S)"
+  echo "MySQL credentials do not match. Backing up volume to ${BACKUP_VOLUME} before automatic recovery."
+  docker volume create "$BACKUP_VOLUME" >/dev/null
+  docker run --rm -v "$DB_VOLUME":/from:ro -v "$BACKUP_VOLUME":/to alpine sh -c 'cp -a /from/. /to/'
+  docker compose -f "$COMPOSE_FILE" down
+  docker volume rm "$DB_VOLUME" >/dev/null
+  docker compose -f "$COMPOSE_FILE" up -d db
+  if ! wait_for_mysql; then
+    echo "MySQL did not become ready after automatic recovery. Backup volume: ${BACKUP_VOLUME}" >&2
+    exit 1
+  fi
+  docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force
+  echo "Automatic MySQL recovery completed. Original data backup volume: ${BACKUP_VOLUME}"
 fi
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan optimize:clear
 
