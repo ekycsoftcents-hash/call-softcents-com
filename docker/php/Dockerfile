@@ -33,7 +33,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath intl gd
+RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath intl gd sockets
 
 # Native RabbitMQ extension used by the Laravel RabbitMQ queue driver
 RUN pecl install amqp \
