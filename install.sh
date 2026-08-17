@@ -7,6 +7,11 @@ PBX_COMPOSE_FILE="${PBX_COMPOSE_FILE:-docker-compose.pbx.yml}"
 
 cd "$APP_DIR"
 
+# Laravel's Composer post-autoload scripts boot the framework and require
+# these writable cache directories to exist in a fresh clone.
+mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+chmod -R ug+rwX storage bootstrap/cache 2>/dev/null || true
+
 command -v docker >/dev/null 2>&1 || { echo "Docker is required. Install Docker Engine and Compose v2 first." >&2; exit 1; }
 docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required." >&2; exit 1; }
 
