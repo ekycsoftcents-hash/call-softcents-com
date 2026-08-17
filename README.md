@@ -59,17 +59,18 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 
-# Create Asterisk Database User
+# Voice and IVR Broadcast Docker Platform
+
+This project provides Laravel 13 portals, RabbitMQ queues, FusionPBX/FreeSWITCH Voice Broadcast and IVR Broadcast modes, CDR reconciliation, balance billing and Docker deployment.
+
+## One-command installation
+
+On a fresh server with Docker Engine and Docker Compose v2 installed:
+
 ```bash
-mysql -u root -e "
-CREATE USER 'softcents'@'103.234.119.204' IDENTIFIED BY 'StrongPass123';
-GRANT SELECT ON asteriskcdrdb.* TO 'softcents'@'103.234.119.204';
-FLUSH PRIVILEGES;"
+git clone https://github.com/ekycsoftcents-hash/call-softcents-com.git && cd call-softcents-com && bash install.sh
 ```
 
-Verify
-```bash
-mysql -u root -e "
-SELECT user, host FROM mysql.user WHERE user='softcents';
-SHOW GRANTS FOR 'softcents'@'103.234.119.204';"
-```
+The installer creates `.env` from `.env.example`, builds the application image, installs dependencies, starts MySQL/Redis/RabbitMQ/MinIO, runs migrations and starts the Laravel/Nginx/worker services. Review and replace all generated credentials before production use.
+
+The FusionPBX/FreeSWITCH PBX stack is defined in `docker-compose.pbx.yml`. It must use an audited, version-pinned `docker/pbx/Dockerfile` before running the PBX build in production.
