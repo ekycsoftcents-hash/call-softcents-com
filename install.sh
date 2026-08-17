@@ -28,6 +28,19 @@ if [[ ! -f .env ]]; then
   echo "Created .env from .env.example. Review credentials before production use."
 fi
 
+# The MySQL image rejects MYSQL_USER=root. Repair older .env files created
+# from the previous template before starting the database container.
+if grep -q '^DB_USERNAME=root[[:space:]]*$' .env; then
+  sed -i 's/^DB_USERNAME=root[[:space:]]*$/DB_USERNAME=voice/' .env
+  echo "Changed DB_USERNAME from root to the application user voice."
+fi
+
+if grep -q '^DB_PASSWORD[[:space:]]*=$' .env; then
+  DB_PASSWORD_GENERATED="$(openssl rand -hex 24 2>/dev/null || head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)"
+  sed -i "s/^DB_PASSWORD[[:space:]]*=.*/DB_PASSWORD=${DB_PASSWORD_GENERATED}/" .env
+  echo "Generated a database password in .env."
+fi
+
 # Build the application image and install PHP/Node dependencies into the mounted project.
 docker compose -f "$COMPOSE_FILE" build --pull
 # GitHub may temporarily rate-limit dist ZIP downloads. Retry from source with
