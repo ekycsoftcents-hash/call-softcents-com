@@ -14,7 +14,7 @@ final class ResellerPortal extends Page
 
     protected static ?string $slug = 'reseller-portal';
 
-    protected static string $view = 'filament.user.pages.reseller-portal';
+    protected string $view = 'filament.user.pages.reseller-portal';
 
     public static function canAccess(): bool
     {
