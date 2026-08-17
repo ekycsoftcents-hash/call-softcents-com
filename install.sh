@@ -36,9 +36,9 @@ if grep -q '^DB_USERNAME=root[[:space:]]*$' .env; then
 fi
 
 if grep -q '^DB_PASSWORD[[:space:]]*=$' .env; then
-  DB_PASSWORD_GENERATED="$(openssl rand -hex 24 2>/dev/null || head -c 24 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32)"
-  sed -i "s/^DB_PASSWORD[[:space:]]*=.*/DB_PASSWORD=${DB_PASSWORD_GENERATED}/" .env
-  echo "Generated a database password in .env."
+  echo "DB_PASSWORD is empty. Set DB_PASSWORD in .env before starting MySQL." >&2
+  echo "If this is a disposable install, remove the old DB volume and rerun the installer." >&2
+  exit 1
 fi
 
 # Build the application image and install PHP/Node dependencies into the mounted project.
@@ -66,7 +66,12 @@ for attempt in {1..30}; do
 done
 
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan key:generate --force
-docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force
+if ! docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force; then
+  echo "Laravel could not authenticate to MySQL. Check DB_DATABASE, DB_USERNAME and DB_PASSWORD in .env." >&2
+  echo "If the database contains no required data, recovery is: docker compose down && docker volume ls | grep dbdata" >&2
+  echo "Remove only the matching old dbdata volume, then rerun this installer." >&2
+  exit 1
+fi
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan optimize:clear
 
 # Use a non-privileged host port by default. This also repairs older .env
