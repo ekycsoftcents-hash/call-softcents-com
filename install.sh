@@ -68,6 +68,22 @@ done
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan key:generate --force
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force
 docker compose -f "$COMPOSE_FILE" run --rm app php artisan optimize:clear
+
+# Avoid failing when an existing host web server already owns port 80.
+if [[ "${APP_PORT:-80}" == "80" ]] && command -v ss >/dev/null 2>&1 && ss -ltn | awk '$4 ~ /:80$/ { found=1 } END { exit !found }'; then
+  for candidate_port in 8080 8081 8082 8083 8084; do
+    if ! ss -ltn | awk -v port=":${candidate_port}" '$4 ~ (port "$") { found=1 } END { exit found }'; then
+      if grep -q '^APP_PORT=' .env; then
+        sed -i "s/^APP_PORT=.*/APP_PORT=${candidate_port}/" .env
+      else
+        printf '\nAPP_PORT=%s\n' "$candidate_port" >> .env
+      fi
+      echo "Port 80 is already in use; using APP_PORT=${candidate_port}."
+      break
+    fi
+  done
+fi
+
 docker compose -f "$COMPOSE_FILE" up -d app web worker
 
 if [[ -f "$PBX_COMPOSE_FILE" && -f docker/pbx/Dockerfile ]]; then
