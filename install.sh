@@ -87,7 +87,11 @@ if ! docker compose -f "$COMPOSE_FILE" run --rm app php artisan migrate --force;
   echo "MySQL credentials do not match. Backing up volume to ${BACKUP_VOLUME} before automatic recovery."
   docker volume create "$BACKUP_VOLUME" >/dev/null
   docker run --rm -v "$DB_VOLUME":/from:ro -v "$BACKUP_VOLUME":/to alpine sh -c 'cp -a /from/. /to/'
-  docker compose -f "$COMPOSE_FILE" down
+  if ! docker compose -f "$COMPOSE_FILE" down --timeout 20; then
+    echo "Compose shutdown timed out; force-stopping remaining containers."
+    docker compose -f "$COMPOSE_FILE" kill >/dev/null 2>&1 || true
+    docker compose -f "$COMPOSE_FILE" down --timeout 5 >/dev/null 2>&1 || true
+  fi
   docker volume rm "$DB_VOLUME" >/dev/null
   docker compose -f "$COMPOSE_FILE" up -d db
   if ! wait_for_mysql; then
